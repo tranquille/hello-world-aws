@@ -1,5 +1,5 @@
 import { readdirSync } from "fs";
-import { join } from "path";
+import { join, parse } from "path";
 import * as mime from "mime";
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
@@ -58,3 +58,52 @@ const bucketPolicy = new aws.s3.BucketPolicy("fe-bucket-policy", {
 });
 
 exports.websiteUrl = siteBucket.websiteEndpoint;
+
+const lambdaDir = "../bin";
+
+const lambdaRole = new aws.iam.Role("lambdaRole", {
+  assumeRolePolicy: {
+    Version: "2012-10-17",
+    Statement: [
+      {
+        Action: "sts:AssumeRole",
+        Principal: {
+          Service: "lambda.amazonaws.com"
+        },
+        Effect: "Allow",
+        Sid: ""
+      }
+    ]
+  }
+});
+
+const lambdaRoleAttachment = new aws.iam.RolePolicyAttachment(
+  "lambdaRoleAttachment",
+  {
+    role: pulumi.interpolate`${lambdaRole.name}`,
+    policyArn: aws.iam.ManagedPolicy.AWSLambdaBasicExecutionRole,
+  }
+)
+
+export const lambdaUrls: Record<string, pulumi.Output<string>> = {};
+for (const lambdaFile of readdirSync(lambdaDir)) {
+  const filename = join(lambdaDir, lambdaFile);
+  const basename = parse(lambdaFile).name;
+  
+  const object = new aws.lambda.Function(`hello-world-aws-${basename}`, {
+    role: lambdaRole.arn,
+    runtime: "nodejs18.x",
+    handler: `${basename}.handler`,
+    code: new pulumi.asset.AssetArchive({
+      [basename]: new pulumi.asset.FileArchive(filename)
+    })
+  });
+
+  const lambdaUrl = new aws.lambda.FunctionUrl(`hello-world-aws-${basename}-url`, {
+    functionName: object.name,
+    authorizationType: "NONE"
+  });
+
+  console.log(lambdaUrl.functionName, lambdaUrl.functionUrl);
+}
+

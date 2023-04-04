@@ -4,21 +4,24 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "run-s clean build:lambdas",
-    "build:lambdas": "tsc --build",
+    "build": "run-s clean lambdas",
+    "lambdas": "run-s lambdas:typecheck lambdas:build package && npm install",
+    "lambdas:typecheck": "tsc --noEmit",
+    "lambdas:build": "esbuild ./lambdas/**/*.ts --bundle --platform=node --target=node18 --packages=external --outdir=bin",
+    "package": "rimraf node_modules && npm ci --omit=dev --strict-peer-deps=true && cp -r node_modules bin/",
     "clean": "rimraf ./bin",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "private": true,
   "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.303.0",
     "@aws-sdk/client-dynamodb": "^3.303.0",
-    "@types/mime": "^3.0.1",
-    "aws-sdk": "^2.1348.0",
-    "mime": "^3.0.0",
-    "rome": "12.0.0"
+    "argon2": "^0.30.3"
   },
   "devDependencies": {
+    "esbuild": "0.17.15",
+    "rome": "12.0.0",
     "@types/aws-lambda": "^8.10.114",
     "@types/node": "^18.15.11",
     "aws-lambda": "^1.0.7",

@@ -1,33 +1,33 @@
-import { APIGatewayEvent } from "aws-lambda";
+import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import {
-  DynamoDBClient,
-  ListTablesCommand,
-  PutItemCommand,
-} from "@aws-sdk/client-dynamodb";
+  CognitoIdentityProviderClient,
+  SignUpCommand,
+  SignUpCommandInput,
+} from "@aws-sdk/client-cognito-identity-provider";
 
 const documentClient = new DynamoDBClient({});
-const listTablesCommand = new ListTablesCommand({
-  ExclusiveStartTableName: "hello-world-aws-users",
-  Limit: 1,
-});
+const identityProviderClient = new CognitoIdentityProviderClient({});
 
-export const handler = async (event: APIGatewayEvent) => {
+const USER_POOL_CLIENT_ID = process.env.USER_POOL_CLIENT_ID;
+
+const TABLE_NAME = process.env.USER_DB_TABLE_NAME;
+
+export const handler = async (event: any) => {
   try {
-    let tableName;
-    const tableNames = (await documentClient.send(listTablesCommand))
-      ?.TableNames;
-    if (tableNames && tableNames.length > 0) {
-      tableName = tableNames[0];
-    } else {
-      return {
-        status: 404,
-      };
-    }
-    console.log("Tablename: ", tableName, tableNames);
+    const { email, password, sports } = event; // obtain event body sent from client
 
-    const { body = "{}" } = event;
-    const parsedBody = JSON.parse(body || "{}");
-    const { email, sports } = parsedBody; // obtain event body sent from client
+    console.log(email, password, sports);
+
+    const singUpInput: SignUpCommandInput = {
+      ClientId: USER_POOL_CLIENT_ID,
+      Username: email,
+      Password: password,
+    };
+    const signUpCommand = new SignUpCommand(singUpInput);
+
+    const signUpResult = await identityProviderClient.send(signUpCommand);
+
+    console.log(signUpResult);
 
     const user = {
       email,
@@ -35,7 +35,7 @@ export const handler = async (event: APIGatewayEvent) => {
     };
 
     const command = new PutItemCommand({
-      TableName: tableName,
+      TableName: TABLE_NAME,
       Item: user,
     });
 

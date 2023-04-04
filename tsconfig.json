@@ -1,15 +1,12 @@
 {
   "compilerOptions": {
     "strict": true,
-    "outDir": "bin",
     "target": "ESNext",
     "module": "CommonJS",
     "moduleResolution": "node",
     "sourceMap": false,
     "pretty": true,
-    "forceConsistentCasingInFileNames": true,
+    "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    "lambdas/**/*.ts"
-  ]
+  "include": ["lambdas/**/*.ts"]
 }

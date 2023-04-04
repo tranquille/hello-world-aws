@@ -1,12 +1,14 @@
 {
-    "name": "hello-world-aws",
-    "main": "index.ts",
-    "devDependencies": {
-        "@pulumi/awsx": "^1.0.2",
-        "@types/node": "^16"
-    },
-    "dependencies": {
-        "@pulumi/aws": "^5.0.0",
-        "@pulumi/pulumi": "^3.0.0"
-    }
+  "name": "hello-world-aws",
+  "main": "index.ts",
+  "devDependencies": {
+    "@pulumi/awsx": "^1.0.2",
+    "@types/node": "^16"
+  },
+  "dependencies": {
+    "@pulumi/aws": "^5.0.0",
+    "@pulumi/pulumi": "^3.0.0",
+    "@types/mime": "^3.0.1",
+    "mime": "^3.0.0"
+  }
 }

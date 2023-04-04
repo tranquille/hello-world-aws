@@ -3,6 +3,8 @@ import { join, parse } from "path";
 import * as mime from "mime";
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
+import * as awsx from "@pulumi/awsx";
+import { Route } from "@pulumi/awsx/classic/apigateway";
 
 // Create User Pool and Client
 // const cognitoUserPool = new aws.cognito.UserPool("userPool", {});
@@ -71,18 +73,42 @@ const lambdaRole = new aws.iam.Role("lambdaRole", {
       },
     ],
   },
+  inlinePolicies: [
+    {
+      name: "ReadWriteTable",
+      policy: JSON.stringify({
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Sid: "ReadWriteTableAndLogs",
+            Effect: "Allow",
+            Action: [
+              "dynamodb:GetItem",
+              "dynamodb:Query",
+              "dynamodb:Scan",
+              "dynamodb:PutItem",
+              "dynamodb:ListTables",
+              "logs:CreateLogGroup",
+              "logs:CreateLogStream",
+              "logs:PutLogEvents",
+            ],
+            Resource: "*",
+          },
+        ],
+      }),
+    },
+  ],
 });
 
-const lambdaRoleAttachment = new aws.iam.RolePolicyAttachment(
-  "lambdaRoleAttachment",
-  {
-    role: pulumi.interpolate`${lambdaRole.name}`,
-    policyArn: aws.iam.ManagedPolicy.AWSLambdaBasicExecutionRole,
-  },
-);
+// const lambdaRoleAttachment = new aws.iam.RolePolicyAttachment(
+//   "lambdaRoleAttachment",
+//   {
+//     role: pulumi.interpolate`${lambdaRole.name}`,
+//     policyArn: aws.iam.ManagedPolicy.AWSLambdaDynamoDBExecutionRole,
+//   }
+// );
 
-export const lambdaUrls: Record<string, pulumi.Output<string>> = {};
-for (const lambdaFile of readdirSync(lambdaDir)) {
+const lambdas = readdirSync(lambdaDir).reduce((lambdas, lambdaFile) => {
   const filename = join(lambdaDir, lambdaFile);
   const basename = parse(lambdaFile).name;
 
@@ -100,8 +126,35 @@ for (const lambdaFile of readdirSync(lambdaDir)) {
     {
       functionName: object.name,
       authorizationType: "NONE",
-    },
+    }
   );
 
-  console.log(lambdaUrl.functionName, lambdaUrl.functionUrl);
-}
+  lambdas[basename] = object;
+  return lambdas;
+}, {} as Record<string, any>);
+
+const Users = new aws.dynamodb.Table("hello-world-aws-users", {
+  attributes: [
+    {
+      name: "email",
+      type: "S",
+    },
+  ],
+  hashKey: "email",
+  readCapacity: 10,
+  writeCapacity: 10,
+});
+
+const API_ROUTES: Route[] = [
+  { path: "/login", method: "GET", eventHandler: lambdas.login },
+  { path: "/register", method: "POST", eventHandler: lambdas.register },
+];
+
+const apiGateway = new awsx.classic.apigateway.API("rest-api", {
+  routes: API_ROUTES,
+  restApiArgs: {
+    binaryMediaTypes: [],
+  },
+});
+
+exports.apiGatewayUrl = apiGateway.url;

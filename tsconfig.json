@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "strict": true,
+    "outDir": "bin",
     "target": "ESNext",
     "module": "CommonJS",
     "moduleResolution": "node",

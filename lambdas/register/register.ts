@@ -14,12 +14,12 @@ const USER_POOL_CLIENT_ID = process.env.USER_POOL_CLIENT_ID;
 const TABLE_NAME = process.env.USER_DB_TABLE_NAME;
 
 enum HttpStatusCode {
-  "OK" = 200,
-  "CREATED" = 201,
-  "NO_CONTENT" = 204,
-  "NOT_FOUND" = 404,
-  "BAD_REQUEST" = 400,
-  "INTERNAL_SERVER_ERROR" = 500,
+  OK = 200,
+  CREATED = 201,
+  NO_CONTENT = 204,
+  NOT_FOUND = 404,
+  BAD_REQUEST = 400,
+  INTERNAL_SERVER_ERROR = 500,
 }
 
 const response = (statusCode: HttpStatusCode, body?: any) => {
@@ -58,7 +58,7 @@ export const handler = async (event: any) => {
     if (isEmpty(email) || isEmpty(password) || !Array.isArray(sports)) {
       return response(
         HttpStatusCode.BAD_REQUEST,
-        "provided payload is not valid"
+        "provided payload is not valid",
       );
     }
 

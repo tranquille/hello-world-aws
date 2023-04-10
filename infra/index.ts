@@ -149,7 +149,7 @@ const apiGateway = new awsx.classic.apigateway.API(
         method: "POST",
         eventHandler: Function.get(
           `${namePrefix}-login-attach`,
-          lambdas["login"].id
+          lambdas["login"].id,
         ),
       },
       {
@@ -157,11 +157,11 @@ const apiGateway = new awsx.classic.apigateway.API(
         method: "POST",
         eventHandler: Function.get(
           `${namePrefix}-register-attach`,
-          lambdas["register"].id
+          lambdas["register"].id,
         ),
       },
     ],
-  }
+  },
 );
 
 exports.apiGatewayUrl = apiGateway.url;

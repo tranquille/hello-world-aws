@@ -5,7 +5,6 @@ import {
   CognitoIdentityProviderClient,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { stat } from "fs";
 
 const documentClient = new DynamoDBClient({});
 const identityProviderClient = new CognitoIdentityProviderClient({});
@@ -15,12 +14,12 @@ const USER_POOL_CLIENT_ID = process.env.USER_POOL_CLIENT_ID;
 const TABLE_NAME = process.env.USER_DB_TABLE_NAME;
 
 enum HttpStatusCode {
-  "OK" = 200,
-  "CREATED" = 201,
-  "NO_CONTENT" = 204,
-  "NOT_FOUND" = 404,
-  "BAD_REQUEST" = 400,
-  "INTERNAL_SERVER_ERROR" = 500,
+  OK = 200,
+  CREATED = 201,
+  NO_CONTENT = 204,
+  NOT_FOUND = 404,
+  BAD_REQUEST = 400,
+  INTERNAL_SERVER_ERROR = 500,
 }
 
 const response = (statusCode: HttpStatusCode, body?: any) => {
@@ -40,22 +39,22 @@ const isNotEmpty = (s: string): boolean =>
 const isEmpty = (s: string): boolean => !isNotEmpty(s);
 
 export const handler = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   try {
     console.log("++++", event);
     const { body, isBase64Encoded } = event;
-    if (body === undefined) {
+    if (body === undefined || body === null) {
       return response(HttpStatusCode.BAD_REQUEST, "body is not defined");
     }
 
     let parsedBody;
     if (isBase64Encoded === true) {
-      const buff = Buffer.from(body!, "base64");
+      const buff = Buffer.from(body, "base64");
       const eventBodyStr = buff.toString("utf8");
       parsedBody = JSON.parse(eventBodyStr);
     } else {
-      parsedBody = JSON.parse(body!);
+      parsedBody = JSON.parse(body);
     }
     const { email, password } = parsedBody;
 
@@ -64,7 +63,7 @@ export const handler = async (
       console.log(password, isEmpty(password));
       return response(
         HttpStatusCode.BAD_REQUEST,
-        "provided payload is not valid"
+        "provided payload is not valid",
       );
     }
 
@@ -93,8 +92,9 @@ export const handler = async (
 
     return response(
       HttpStatusCode.OK,
-      Item !== undefined ? unmarshall(Item) : undefined
+      Item !== undefined ? unmarshall(Item) : undefined,
     );
+    // rome-ignore lint/suspicious/noExplicitAny: Catch clause accepts only any or unknown
   } catch (e: any) {
     const statusCode =
       e?.$metadata?.httpStatusCode || HttpStatusCode.INTERNAL_SERVER_ERROR;

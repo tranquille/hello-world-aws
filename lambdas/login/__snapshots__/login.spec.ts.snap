@@ -1,0 +1,100 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Login Lambda > handles a login request with incomplete payload 1`] = `
+{
+  "body": "\\"provided payload is not valid\\"",
+  "headers": {
+    "Content-Type": "application/json",
+  },
+  "isBase64Encoded": false,
+  "statusCode": 400,
+}
+`;
+
+exports[`Login Lambda > handles a login request with incomplete payload 2`] = `
+{
+  "body": "\\"provided payload is not valid\\"",
+  "headers": {
+    "Content-Type": "application/json",
+  },
+  "isBase64Encoded": false,
+  "statusCode": 400,
+}
+`;
+
+exports[`Login Lambda > handles a login request with incomplete payload 3`] = `
+{
+  "body": "\\"provided payload is not valid\\"",
+  "headers": {
+    "Content-Type": "application/json",
+  },
+  "isBase64Encoded": false,
+  "statusCode": 400,
+}
+`;
+
+exports[`Login Lambda > handles a login request with incomplete payload 4`] = `
+{
+  "body": "\\"provided payload is not valid\\"",
+  "headers": {
+    "Content-Type": "application/json",
+  },
+  "isBase64Encoded": false,
+  "statusCode": 400,
+}
+`;
+
+exports[`Login Lambda > handles a login request with incomplete payload 5`] = `
+{
+  "body": "\\"provided payload is not valid\\"",
+  "headers": {
+    "Content-Type": "application/json",
+  },
+  "isBase64Encoded": false,
+  "statusCode": 400,
+}
+`;
+
+exports[`Login Lambda > handles a login request with incomplete payload 6`] = `
+{
+  "body": "\\"provided payload is not valid\\"",
+  "headers": {
+    "Content-Type": "application/json",
+  },
+  "isBase64Encoded": false,
+  "statusCode": 400,
+}
+`;
+
+exports[`Login Lambda > handles a login request with username and password 1`] = `
+{
+  "body": undefined,
+  "headers": {
+    "Content-Type": "application/json",
+  },
+  "isBase64Encoded": false,
+  "statusCode": 200,
+}
+`;
+
+exports[`Login Lambda > handles a login request with username and password as base64 1`] = `
+{
+  "body": undefined,
+  "headers": {
+    "Content-Type": "application/json",
+  },
+  "isBase64Encoded": false,
+  "statusCode": 200,
+}
+`;
+
+exports[`Login Lambda > rejects an unknown user 1`] = `
+{
+  "body": "{\\"name\\":\\"UserNotFoundException\\",\\"$fault\\":\\"client\\",\\"$metadata\\":{\\"httpStatusCode\\":400,\\"requestId\\":\\"3fccc512-2371-4782-95e5-94b01d2b29ae\\",\\"attempts\\":1,\\"totalRetryDelay\\":0},\\"__type\\":\\"UserNotFoundException\\"}",
+  "headers": {
+    "Content-Type": "application/json",
+  },
+  "isBase64Encoded": false,
+  "statusCode": 400,
+}
+`;

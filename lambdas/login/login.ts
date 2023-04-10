@@ -22,7 +22,7 @@ enum HttpStatusCode {
   INTERNAL_SERVER_ERROR = 500,
 }
 
-const response = (statusCode: HttpStatusCode, body?: any) => {
+const response = (statusCode: HttpStatusCode, body?: unknown) => {
   return {
     statusCode,
     headers: {
@@ -42,7 +42,6 @@ export const handler = async (
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   try {
-    console.log("++++", event);
     const { body, isBase64Encoded } = event;
     if (body === undefined || body === null) {
       return response(HttpStatusCode.BAD_REQUEST, "body is not defined");
@@ -59,8 +58,6 @@ export const handler = async (
     const { email, password } = parsedBody;
 
     if (isEmpty(email) || isEmpty(password)) {
-      console.log(email, isEmpty(email));
-      console.log(password, isEmpty(password));
       return response(
         HttpStatusCode.BAD_REQUEST,
         "provided payload is not valid",

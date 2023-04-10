@@ -5,6 +5,7 @@ import {
   CognitoIdentityProviderClient,
   SignUpCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
+import { APIGatewayProxyEvent } from "aws-lambda";
 
 const documentClient = new DynamoDBClient({});
 const identityProviderClient = new CognitoIdentityProviderClient({});
@@ -22,7 +23,7 @@ enum HttpStatusCode {
   INTERNAL_SERVER_ERROR = 500,
 }
 
-const response = (statusCode: HttpStatusCode, body?: any) => {
+const response = (statusCode: HttpStatusCode, body?: unknown) => {
   return {
     statusCode,
     headers: {
@@ -38,20 +39,20 @@ const isNotEmpty = (s: string): boolean =>
 
 const isEmpty = (s: string): boolean => !isNotEmpty(s);
 
-export const handler = async (event: any) => {
+export const handler = async (event: APIGatewayProxyEvent) => {
   try {
     const { body, isBase64Encoded } = event;
-    if (body === undefined) {
+    if (body === undefined || body === null) {
       return response(HttpStatusCode.BAD_REQUEST, "body is not defined");
     }
 
     let parsedBody;
     if (isBase64Encoded === true) {
-      const buff = Buffer.from(body!, "base64");
+      const buff = Buffer.from(body, "base64");
       const eventBodyStr = buff.toString("utf8");
       parsedBody = JSON.parse(eventBodyStr);
     } else {
-      parsedBody = JSON.parse(body!);
+      parsedBody = JSON.parse(body);
     }
     const { email, password, sports } = parsedBody;
 
@@ -88,6 +89,7 @@ export const handler = async (event: any) => {
     console.log("Data stored successfully");
 
     return response(HttpStatusCode.CREATED);
+    // rome-ignore lint/suspicious/noExplicitAny: <explanation>
   } catch (e: any) {
     const statusCode =
       e?.$metadata?.httpStatusCode || HttpStatusCode.INTERNAL_SERVER_ERROR;

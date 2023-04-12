@@ -151,7 +151,7 @@ const apiGateway = new awsx.classic.apigateway.API(
   `${namePrefix}-api-gateway`,
   {
     routes,
-  }
+  },
 );
 
 exports.apiGatewayUrl = apiGateway.url;

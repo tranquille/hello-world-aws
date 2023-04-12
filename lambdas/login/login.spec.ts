@@ -14,18 +14,6 @@ vi.mock("@aws-sdk/client-cognito-identity-provider", async () => {
   return { ...actual, CognitoIdentityProviderClient };
 });
 
-const dynamoDbSend = vi.fn();
-vi.mock("@aws-sdk/client-dynamodb", async () => {
-  // rome-ignore lint/suspicious/noExplicitAny: <explanation>
-  const actual: any = await vi.importActual("@aws-sdk/client-dynamodb");
-
-  const DynamoDBClient = vi.fn(() => ({
-    send: dynamoDbSend,
-  }));
-
-  return { ...actual, DynamoDBClient };
-});
-
 import { APIGatewayProxyEvent } from "aws-lambda";
 import { handler } from "./login";
 
@@ -58,7 +46,8 @@ describe("Login Lambda", () => {
   });
 
   it("handles a login request with username and password", async () => {
-    dynamoDbSend.mockReturnValue({ Item: [] });
+    identityProviderSend.mockReturnValue({ AuthenticationResult: "ok" });
+
     const testEvent: APIGatewayProxyEvent = getTestEvent({
       email: "my@test.com",
       password: "asdf",
@@ -68,13 +57,12 @@ describe("Login Lambda", () => {
 
     expect(identityProviderSend).toHaveBeenCalled();
 
-    expect(dynamoDbSend).toHaveBeenCalled();
-
     expect(result).toMatchSnapshot();
   });
 
   it("handles a login request with username and password as base64", async () => {
-    dynamoDbSend.mockReturnValue({ Item: [] });
+    identityProviderSend.mockReturnValue({ AuthenticationResult: "ok" });
+
     const testEvent: APIGatewayProxyEvent = getTestEvent(
       {
         email: "my@test.com",
@@ -86,8 +74,6 @@ describe("Login Lambda", () => {
     const result = await handler(testEvent);
 
     expect(identityProviderSend).toHaveBeenCalled();
-
-    expect(dynamoDbSend).toHaveBeenCalled();
 
     expect(result).toMatchSnapshot();
   });
@@ -103,7 +89,6 @@ describe("Login Lambda", () => {
   `(
     "handles a login request with incomplete payload",
     async ({ email, password, expected }) => {
-      dynamoDbSend.mockReturnValue({ Item: [] });
       const testEvent: APIGatewayProxyEvent = getTestEvent({
         email,
         password,
@@ -112,8 +97,6 @@ describe("Login Lambda", () => {
       const result = await handler(testEvent);
 
       expect(identityProviderSend).not.toHaveBeenCalled();
-
-      expect(dynamoDbSend).not.toHaveBeenCalled();
 
       expect(result).toMatchSnapshot();
     },
@@ -144,8 +127,6 @@ describe("Login Lambda", () => {
     const result = await handler(testEvent);
 
     expect(identityProviderSend).toHaveBeenCalled();
-
-    expect(dynamoDbSend).not.toHaveBeenCalled();
 
     expect(result).toMatchSnapshot();
   });

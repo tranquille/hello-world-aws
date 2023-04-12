@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Login Lambda > retrieves the user data if a AuthenticationToken is provided 1`] = `
+{
+  "body": undefined,
+  "headers": {
+    "Content-Type": "application/json",
+  },
+  "isBase64Encoded": false,
+  "statusCode": 200,
+}
+`;

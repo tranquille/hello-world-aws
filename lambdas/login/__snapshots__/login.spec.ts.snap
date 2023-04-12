@@ -68,7 +68,7 @@ exports[`Login Lambda > handles a login request with incomplete payload 6`] = `
 
 exports[`Login Lambda > handles a login request with username and password 1`] = `
 {
-  "body": undefined,
+  "body": "\\"ok\\"",
   "headers": {
     "Content-Type": "application/json",
   },
@@ -79,7 +79,7 @@ exports[`Login Lambda > handles a login request with username and password 1`] =
 
 exports[`Login Lambda > handles a login request with username and password as base64 1`] = `
 {
-  "body": undefined,
+  "body": "\\"ok\\"",
   "headers": {
     "Content-Type": "application/json",
   },

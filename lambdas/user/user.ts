@@ -37,7 +37,7 @@ const isNotEmpty = (s: string | undefined | null): boolean =>
 const isEmpty = (s: string): boolean => !isNotEmpty(s);
 
 export const handler = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   try {
     const { body, isBase64Encoded } = event;
@@ -58,7 +58,7 @@ export const handler = async (
     if (isEmpty(token)) {
       return response(
         HttpStatusCode.BAD_REQUEST,
-        "provided payload is not valid"
+        "provided payload is not valid",
       );
     }
 
@@ -66,12 +66,10 @@ export const handler = async (
       AccessToken: token,
     });
     const user = await identityProviderClient.send(getUserCommand);
-    console.log("Logged in successfully");
-    console.log(user);
 
     let item;
     const email = user.UserAttributes?.find(
-      (attr) => attr.Name === "email"
+      (attr) => attr.Name === "email",
     )?.Value;
 
     if (email) {

@@ -1,12 +1,11 @@
 import { Accessor, Setter, createSignal } from "solid-js";
-import { useUserContext } from "./user-store";
 import { register } from "./api-client";
 import { useNavigate } from "@solidjs/router";
 
 export default function Register() {
   const [sports, setSports]: [
     sports: Accessor<Array<string>>,
-    setSports: Setter<Array<string>>
+    setSports: Setter<Array<string>>,
   ] = createSignal([]);
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");

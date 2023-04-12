@@ -26,7 +26,7 @@ export const user = async (token: string) => send("POST", "/user", { token });
 export const register = async (
   email: string,
   password: string,
-  sports: Array<string>
+  sports: Array<string>,
 ) => send("POST", "/register", { email, password, sports });
 
 export const login = async (email: string, password: string) =>

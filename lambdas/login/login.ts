@@ -35,7 +35,7 @@ const isNotEmpty = (s: string): boolean =>
 const isEmpty = (s: string): boolean => !isNotEmpty(s);
 
 export const handler = async (
-  event: APIGatewayProxyEvent
+  event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   try {
     const { body, isBase64Encoded } = event;
@@ -56,7 +56,7 @@ export const handler = async (
     if (isEmpty(email) || isEmpty(password)) {
       return response(
         HttpStatusCode.BAD_REQUEST,
-        "provided payload is not valid"
+        "provided payload is not valid",
       );
     }
 

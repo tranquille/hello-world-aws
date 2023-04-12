@@ -11,7 +11,10 @@
     "lambdas:build": "node esbuild.config.mjs",
     "serve": "vite preview",
     "start": "vite",
-    "test": "vitest"
+    "test": "vitest",
+    "lint": "rome check .",
+    "format": "rome format --write .",
+    "format:check": "rome format ."
   },
   "author": "",
   "private": true,

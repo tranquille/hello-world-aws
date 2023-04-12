@@ -1,13 +1,9 @@
 import { readdirSync } from "fs";
-import { opendir } from "fs/promises";
-import * as path from "path";
 import { join, parse } from "path";
-import * as mime from "mime";
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 import * as awsx from "@pulumi/awsx";
 import { Route } from "@pulumi/awsx/classic/apigateway";
-import { Function } from "@pulumi/aws/lambda/function";
 
 const namePrefix = "hello-world-aws";
 
@@ -138,7 +134,10 @@ const paths = ["login", "register", "user"];
 const routes: Route[] = paths.map((path) => ({
   path,
   method: "POST",
-  eventHandler: Function.get(`${namePrefix}-${path}-attach`, lambdas[path].id),
+  eventHandler: aws.lambda.Function.get(
+    `${namePrefix}-${path}-attach`,
+    lambdas[path].id,
+  ),
 }));
 
 routes.push({

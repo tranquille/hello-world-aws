@@ -26,7 +26,7 @@ export default function Login() {
         setToken("");
         setError(true);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       setToken("");
       setError(true);
       console.error(error);

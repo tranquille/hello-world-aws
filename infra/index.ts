@@ -1,61 +1,64 @@
 import { readdirSync } from "fs";
+import { opendir } from "fs/promises";
+import * as path from "path";
 import { join, parse } from "path";
 import * as mime from "mime";
 import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
+import * as awsx from "@pulumi/awsx";
+import { Route } from "@pulumi/awsx/classic/apigateway";
+import { Function } from "@pulumi/aws/lambda/function";
 
-// Create User Pool and Client
-// const cognitoUserPool = new aws.cognito.UserPool("userPool", {});
-// const cognitoUserPoolClient = new aws.cognito.UserPoolClient(
-//     "userPoolClient",
-//     {
-//         userPoolId: cognitoUserPool.id,
-//         generateSecret: true,
-//         name: "hello-world-aws-app"
-//     }
-// );
+const namePrefix = "hello-world-aws";
 
-// S3 Bucket
-const siteBucket = new aws.s3.Bucket("fe-bucket", {
-  website: {
-    indexDocument: "index.html",
-  },
-});
-const siteDir = "../www";
-
-for (const item of readdirSync(siteDir)) {
-  const filePath = join(siteDir, item);
-  const object = new aws.s3.BucketObject(item, {
-    bucket: siteBucket,
-    source: new pulumi.asset.FileAsset(filePath),
-    contentType: mime.getType(filePath) || undefined,
-  });
-}
-
-exports.bucketName = siteBucket.bucket; // create a stack export for bucket name
-
-function publicReadPolicyForBucket(bucketName: string) {
-  return JSON.stringify({
-    Version: "2012-10-17",
-    Statement: [
-      {
-        Effect: "Allow",
-        Principal: "*",
-        Action: ["s3:GetObject"],
-        Resource: [`arn:aws:s3:::${bucketName}/*`],
+const userPool = new aws.cognito.UserPool("userPool", {
+  name: `${namePrefix}-user-pool`,
+  schemas: [
+    {
+      name: "email",
+      required: true,
+      attributeDataType: "String",
+      stringAttributeConstraints: {
+        maxLength: "2048",
+        minLength: "0",
       },
-    ],
-  });
-}
-
-const bucketPolicy = new aws.s3.BucketPolicy("fe-bucket-policy", {
-  bucket: siteBucket.bucket,
-  policy: siteBucket.bucket.apply(publicReadPolicyForBucket),
+    },
+  ],
+  passwordPolicy: {
+    minimumLength: 6,
+    requireSymbols: false,
+    requireNumbers: true,
+    requireLowercase: true,
+    requireUppercase: true,
+    temporaryPasswordValidityDays: 7,
+  },
+  usernameConfiguration: {
+    caseSensitive: false,
+  },
+  usernameAttributes: ["email"],
 });
 
-exports.websiteUrl = siteBucket.websiteEndpoint;
+const userPoolClient = new aws.cognito.UserPoolClient("userPoolClient", {
+  name: `${namePrefix}-user-pool-client`,
+  userPoolId: userPool.id,
+  generateSecret: false,
+  explicitAuthFlows: [
+    "ALLOW_REFRESH_TOKEN_AUTH",
+    "ALLOW_ADMIN_USER_PASSWORD_AUTH",
+  ],
+});
 
-const lambdaDir = "../bin";
+const usersTable = new aws.dynamodb.Table(`${namePrefix}-users`, {
+  attributes: [
+    {
+      name: "email",
+      type: "S",
+    },
+  ],
+  hashKey: "email",
+  readCapacity: 10,
+  writeCapacity: 10,
+});
 
 const lambdaRole = new aws.iam.Role("lambdaRole", {
   assumeRolePolicy: {
@@ -71,37 +74,84 @@ const lambdaRole = new aws.iam.Role("lambdaRole", {
       },
     ],
   },
+  inlinePolicies: [
+    {
+      name: "AuthReadWriteTable",
+      policy: JSON.stringify({
+        Version: "2012-10-17",
+        Statement: [
+          {
+            Sid: "AuthReadWriteTableAndLogs",
+            Effect: "Allow",
+            Action: [
+              "cognito-idp:AdminInitiateAuth",
+              "cognito-idp:AdminConfirmSignUp",
+              "dynamodb:GetItem",
+              "dynamodb:Query",
+              "dynamodb:Scan",
+              "dynamodb:PutItem",
+              "dynamodb:ListTables",
+              "logs:CreateLogGroup",
+              "logs:CreateLogStream",
+              "logs:PutLogEvents",
+            ],
+            Resource: "*",
+          },
+        ],
+      }),
+    },
+  ],
 });
 
-const lambdaRoleAttachment = new aws.iam.RolePolicyAttachment(
-  "lambdaRoleAttachment",
-  {
-    role: pulumi.interpolate`${lambdaRole.name}`,
-    policyArn: aws.iam.ManagedPolicy.AWSLambdaBasicExecutionRole,
-  },
-);
+const lambdaDir = "../bin";
 
-export const lambdaUrls: Record<string, pulumi.Output<string>> = {};
-for (const lambdaFile of readdirSync(lambdaDir)) {
+const lambdas = readdirSync(lambdaDir).reduce((lambdas, lambdaFile) => {
+  if (lambdaFile === "node_modules") {
+    return lambdas;
+  }
   const filename = join(lambdaDir, lambdaFile);
   const basename = parse(lambdaFile).name;
 
-  const object = new aws.lambda.Function(`hello-world-aws-${basename}`, {
+  const object = new aws.lambda.Function(`${namePrefix}-${basename}`, {
     role: lambdaRole.arn,
     runtime: "nodejs18.x",
     handler: `${basename}/${basename}.handler`,
     code: new pulumi.asset.AssetArchive({
       [basename]: new pulumi.asset.FileArchive(filename),
     }),
+    environment: {
+      variables: {
+        USER_POOL_ID: userPool.id,
+        USER_POOL_CLIENT_ID: userPoolClient.id,
+        USER_DB_TABLE_NAME: usersTable.name,
+      },
+    },
+    memorySize: 192,
   });
 
-  const lambdaUrl = new aws.lambda.FunctionUrl(
-    `hello-world-aws-${basename}-url`,
-    {
-      functionName: object.name,
-      authorizationType: "NONE",
-    },
-  );
+  lambdas[basename] = object;
+  return lambdas;
+}, {} as Record<string, Function>);
 
-  console.log(lambdaUrl.functionName, lambdaUrl.functionUrl);
-}
+const paths = ["login", "register", "user"];
+
+const routes: Route[] = paths.map((path) => ({
+  path,
+  method: "POST",
+  eventHandler: Function.get(`${namePrefix}-${path}-attach`, lambdas[path].id),
+}));
+
+routes.push({
+  path: "/",
+  localPath: "../dist",
+  index: true,
+});
+
+const apiGateway = new awsx.classic.apigateway.API(
+  `${namePrefix}-api-gateway`,
+  {
+    routes,
+  }
+);
+
+exports.apiGatewayUrl = apiGateway.url;

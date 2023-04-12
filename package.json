@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "engines": {
+    "node": ">= 18"
+  },
   "scripts": {
     "build": "run-s clean lambdas:build fe:build",
     "clean": "rimraf ./bin",
@@ -11,7 +14,10 @@
     "lambdas:build": "node esbuild.config.mjs",
     "serve": "vite preview",
     "start": "vite",
-    "test": "vitest"
+    "test": "vitest",
+    "lint": "rome check .",
+    "format": "rome format --write .",
+    "format:check": "rome format ."
   },
   "author": "",
   "private": true,
@@ -39,6 +45,6 @@
     "typescript": "^5.0.4",
     "vite": "^4.2.1",
     "vite-plugin-solid": "^2.7.0",
-    "vitest": "^0.30.0"
+    "vitest": "^0.30.1"
   }
 }

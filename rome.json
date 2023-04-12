@@ -7,11 +7,13 @@
     "enabled": true,
     "rules": {
       "recommended": true
-    }
+    },
+    "ignore": ["node_modules", "dist", "bin"]
   },
   "formatter": {
     "enabled": true,
     "formatWithErrors": false,
-    "indentStyle": "space"
+    "indentStyle": "space",
+    "ignore": ["node_modules", "dist", "bin"]
   }
 }

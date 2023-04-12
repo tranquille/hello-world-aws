@@ -11,7 +11,6 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
   );
 }
 
-// rome-ignore lint/style/noNonNullAssertion:
 render(
   () => (
     <Router>
@@ -20,5 +19,6 @@ render(
       </UserContextProvider>
     </Router>
   ),
+  // rome-ignore lint/style/noNonNullAssertion:
   root!,
 );

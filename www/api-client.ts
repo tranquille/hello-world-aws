@@ -16,7 +16,7 @@ async function send(method: string, url: string, data: unknown) {
     }
     const json = await response.json();
     return json;
-  } catch (err: any) {
+  } catch (err: unknown) {
     return err;
   }
 }

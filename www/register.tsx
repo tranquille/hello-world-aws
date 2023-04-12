@@ -39,7 +39,7 @@ export default function Register() {
       }
 
       navigate("/", { replace: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       setError("Regestration failed...");
       console.error(error);
     }

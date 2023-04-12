@@ -1,3 +1,2 @@
 config:
-  aws:profile: bart
   aws:region: eu-central-1

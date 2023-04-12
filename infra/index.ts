@@ -108,26 +108,29 @@ const lambdas = readdirSync(lambdaDir).reduce((lambdas, lambdaFile) => {
   const filename = join(lambdaDir, lambdaFile);
   const basename = parse(lambdaFile).name;
 
-  const object = new aws.lambda.Function(`${namePrefix}-${basename}`, {
-    role: lambdaRole.arn,
-    runtime: "nodejs18.x",
-    handler: `${basename}/${basename}.handler`,
-    code: new pulumi.asset.AssetArchive({
-      [basename]: new pulumi.asset.FileArchive(filename),
-    }),
-    environment: {
-      variables: {
-        USER_POOL_ID: userPool.id,
-        USER_POOL_CLIENT_ID: userPoolClient.id,
-        USER_DB_TABLE_NAME: usersTable.name,
+  const object: aws.lambda.Function = new aws.lambda.Function(
+    `${namePrefix}-${basename}`,
+    {
+      role: lambdaRole.arn,
+      runtime: "nodejs18.x",
+      handler: `${basename}/${basename}.handler`,
+      code: new pulumi.asset.AssetArchive({
+        [basename]: new pulumi.asset.FileArchive(filename),
+      }),
+      environment: {
+        variables: {
+          USER_POOL_ID: userPool.id,
+          USER_POOL_CLIENT_ID: userPoolClient.id,
+          USER_DB_TABLE_NAME: usersTable.name,
+        },
       },
-    },
-    memorySize: 192,
-  });
+      memorySize: 192,
+    }
+  );
 
   lambdas[basename] = object;
   return lambdas;
-}, {} as Record<string, Function>);
+}, {} as Record<string, aws.lambda.Function>);
 
 const paths = ["login", "register", "user"];
 
@@ -136,7 +139,7 @@ const routes: Route[] = paths.map((path) => ({
   method: "POST",
   eventHandler: aws.lambda.Function.get(
     `${namePrefix}-${path}-attach`,
-    lambdas[path].id,
+    lambdas[path].id
   ),
 }));
 
@@ -150,7 +153,7 @@ const apiGateway = new awsx.classic.apigateway.API(
   `${namePrefix}-api-gateway`,
   {
     routes,
-  },
+  }
 );
 
 exports.apiGatewayUrl = apiGateway.url;

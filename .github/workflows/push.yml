@@ -27,6 +27,6 @@ jobs:
       - uses: pulumi/actions@v4
         with:
           command: up
-          stack-name: hello-world-aws-dev
+          stack-name: dev
         env:
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}

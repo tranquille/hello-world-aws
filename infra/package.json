@@ -3,11 +3,11 @@
   "main": "index.ts",
   "devDependencies": {
     "@pulumi/awsx": "^1.0.2",
-    "@types/node": "^16"
+    "@types/node": "^18"
   },
   "dependencies": {
-    "@pulumi/aws": "^5.0.0",
-    "@pulumi/pulumi": "^3.0.0",
+    "@pulumi/aws": "^5.35.0",
+    "@pulumi/pulumi": "^3.62.0",
     "@types/mime": "^3.0.1",
     "mime": "^3.0.0"
   }

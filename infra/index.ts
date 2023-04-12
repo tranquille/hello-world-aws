@@ -1,4 +1,6 @@
 import { readdirSync } from "fs";
+import { opendir } from "fs/promises";
+import * as path from "path";
 import { join, parse } from "path";
 import * as mime from "mime";
 import * as pulumi from "@pulumi/pulumi";
@@ -58,8 +60,6 @@ const usersTable = new aws.dynamodb.Table(`${namePrefix}-users`, {
   writeCapacity: 10,
 });
 
-const lambdaDir = "../bin";
-
 const lambdaRole = new aws.iam.Role("lambdaRole", {
   assumeRolePolicy: {
     Version: "2012-10-17",
@@ -103,6 +103,8 @@ const lambdaRole = new aws.iam.Role("lambdaRole", {
   ],
 });
 
+const lambdaDir = "../bin";
+
 const lambdas = readdirSync(lambdaDir).reduce((lambdas, lambdaFile) => {
   if (lambdaFile === "node_modules") {
     return lambdas;
@@ -127,41 +129,29 @@ const lambdas = readdirSync(lambdaDir).reduce((lambdas, lambdaFile) => {
     memorySize: 192,
   });
 
-  // new aws.lambda.Permission(
-  //   `${namePrefix}-${basename}-api-gw-lambda-permission`,
-  //   {
-  //     action: "lambda:InvokeFunction",
-  //     principal: "apigateway.amazonaws.com",
-  //     function: object,
-  //   }
-  // );
-
   lambdas[basename] = object;
   return lambdas;
 }, {} as Record<string, Function>);
 
+const paths = ["login", "register", "user"];
+
+const routes: Route[] = paths.map((path) => ({
+  path,
+  method: "POST",
+  eventHandler: Function.get(`${namePrefix}-${path}-attach`, lambdas[path].id),
+}));
+
+routes.push({
+  path: "/",
+  localPath: "../dist",
+  index: true,
+});
+
 const apiGateway = new awsx.classic.apigateway.API(
   `${namePrefix}-api-gateway`,
   {
-    routes: [
-      {
-        path: "/login",
-        method: "POST",
-        eventHandler: Function.get(
-          `${namePrefix}-login-attach`,
-          lambdas["login"].id,
-        ),
-      },
-      {
-        path: "/register",
-        method: "POST",
-        eventHandler: Function.get(
-          `${namePrefix}-register-attach`,
-          lambdas["register"].id,
-        ),
-      },
-    ],
-  },
+    routes,
+  }
 );
 
 exports.apiGatewayUrl = apiGateway.url;

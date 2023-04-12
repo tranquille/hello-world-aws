@@ -6,8 +6,17 @@ import solidPlugin from "vite-plugin-solid";
 
 export default defineConfig({
   plugins: [solidPlugin()],
+  base: "./",
   server: {
     port: 3000,
+    proxy: {
+      "/api": {
+        target:
+          "https://yii4v9xu1h.execute-api.eu-central-1.amazonaws.com/stage",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
   },
   test: {
     environmentMatchGlobs: [

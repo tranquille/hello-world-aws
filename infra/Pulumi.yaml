@@ -1,0 +1,3 @@
+name: hello-world-aws
+runtime: nodejs
+description: Hello World on AWS

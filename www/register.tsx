@@ -5,7 +5,7 @@ import { useNavigate } from "@solidjs/router";
 export default function Register() {
   const [sports, setSports]: [
     sports: Accessor<Array<string>>,
-    setSports: Setter<Array<string>>,
+    setSports: Setter<Array<string>>
   ] = createSignal([]);
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
@@ -41,6 +41,7 @@ export default function Register() {
       navigate("/", { replace: true });
     } catch (error: unknown) {
       setError("Regestration failed...");
+      console.log("asdsad");
       console.error(error);
     }
   };
